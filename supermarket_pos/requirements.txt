@@ -1,0 +1,25 @@
+# ============================================================
+# requirements.txt — Dependencias del Sistema POS DTo2
+# ============================================================
+#
+# INSTALACIÓN PASO A PASO (evita el error de Pillow):
+#
+#   Paso 1 — Dependencias sin Pillow:
+#     pip install mysql-connector-python bcrypt reportlab openpyxl
+#
+#   Paso 2 — Pillow por separado:
+#     pip install Pillow                        (Windows / macOS)
+#     sudo apt-get install python3-pil          (Ubuntu/Debian)
+#     sudo dnf install python3-pillow           (Fedora/RHEL)
+#
+# NOTA: Pillow es OPCIONAL. Sin él el logo no se muestra,
+#       pero todo el resto del sistema funciona normalmente.
+# ============================================================
+
+mysql-connector-python>=8.0.0
+bcrypt>=4.0.0
+reportlab>=4.0.0
+openpyxl>=3.1.0
+
+# Pillow es opcional — el sistema funciona sin ella
+# pip install Pillow   ← instalar por separado si es posible
