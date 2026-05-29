@@ -85,7 +85,7 @@ class EmployeeService:
         self._repo = EmployeeRepository()
 
     def list_all(self) -> list[Employee]:
-        return self._repo.find_all()
+        return self._repo.find_active()
 
     def find(self, emp_id: int) -> Optional[Employee]:
         return self._repo.find_by_id(emp_id)
@@ -170,15 +170,17 @@ class ProductService:
         errors = prod.validate()
         if errors:
             raise ValueError("\n".join(errors))
-        existing = self._repo.find_by_code(prod.code)
+        # Verificar duplicado entre productos ACTIVOS únicamente
+        existing = self._repo.find_by_code(prod.code)  # ya filtra active=1
         if existing:
-            raise ValueError(f"Ya existe un producto con código '{prod.code}'.")
+            raise ValueError(f"Ya existe un producto activo con código '{prod.code}'.")
         return self._repo.save(prod)
 
     def update(self, prod: Product) -> int:
         errors = prod.validate()
         if errors:
             raise ValueError("\n".join(errors))
+        # Al editar, verificar que el código no lo use OTRO producto activo
         existing = self._repo.find_by_code(prod.code)
         if existing and existing.id != prod.id:
             raise ValueError(f"El código '{prod.code}' ya está en uso.")
