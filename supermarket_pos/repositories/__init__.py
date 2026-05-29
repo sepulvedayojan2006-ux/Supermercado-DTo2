@@ -103,7 +103,7 @@ class EmployeeRepository(BaseRepository):
 
     def find_by_identification(self, identification: str) -> Optional[Employee]:
         row = db.execute_query(
-            "SELECT * FROM employees WHERE identification=%s", (identification,), fetch_one=True
+            "SELECT * FROM employees WHERE identification=%s AND active=1", (identification,), fetch_one=True
         )
         return self._map(row) if row else None
 
@@ -146,7 +146,7 @@ class EmployeeRepository(BaseRepository):
 
     def delete(self, entity_id: int) -> bool:
         db.execute_query(
-            "UPDATE employees SET active=0 WHERE id=%s", (entity_id,), commit=True
+            "DELETE FROM employees WHERE id=%s", (entity_id,), commit=True
         )
         return True
 
@@ -237,6 +237,12 @@ class ProductRepository(BaseRepository):
 
     def find_by_code(self, code: str) -> Optional[Product]:
         row = db.execute_query(
+            self._BASE + " WHERE p.code=%s AND p.active=1", (code,), fetch_one=True
+        )
+        return self._map(row) if row else None
+    
+    def find_by_code_any(self, code: str) -> Optional[Product]:
+        row = db.execute_query(
             self._BASE + " WHERE p.code=%s", (code,), fetch_one=True
         )
         return self._map(row) if row else None
@@ -297,9 +303,20 @@ class ProductRepository(BaseRepository):
         )
 
     def delete(self, entity_id: int) -> bool:
-        db.execute_query(
-            "UPDATE products SET active=0 WHERE id=%s", (entity_id,), commit=True
+        # Verificar si tiene ventas asociadas
+        row = db.execute_query(
+            "SELECT COUNT(*) AS total FROM sale_details WHERE product_id=%s", (entity_id,), fetch_one=True
         )
+        if row and row["total"] > 0:
+            # Tiene historial: solo desactivar
+            db.execute_query(
+                "UPDATE products SET active=0 WHERE id=%s", (entity_id,), commit=True
+            )
+        else:
+            # Sin historial: borrar físicamente
+            db.execute_query(
+                "DELETE FROM products WHERE id=%s", (entity_id,), commit=True
+            )
         return True
 
     @staticmethod
