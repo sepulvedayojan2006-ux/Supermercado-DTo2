@@ -277,8 +277,9 @@ def show_warning(parent, message: str) -> None:
 class SearchBar(tk.Frame):
     def __init__(self, parent, placeholder: str, on_search, **kw):
         super().__init__(parent, bg=THEME_BG, **kw)
+        self._placeholder = placeholder
         self._var = tk.StringVar()
-        self._var.trace_add("write", lambda *_: on_search(self._var.get()))
+        self._var.trace_add("write", lambda *_: self._on_change(on_search))
         ttk.Label(self, text="🔍", font=(FONT_FAMILY, 12),
                   background=THEME_BG).pack(side="left", padx=(0, 4))
         entry = ttk.Entry(self, textvariable=self._var, width=35,
@@ -289,6 +290,14 @@ class SearchBar(tk.Frame):
                                             if entry.get() == placeholder else None))
         entry.bind("<FocusOut>", lambda e: (entry.insert(0, placeholder)
                                             if not entry.get() else None))
+
+    def _on_change(self, on_search) -> None:
+        text = self._var.get()
+        # Si el texto es el placeholder o está vacío, buscar todo
+        if text == self._placeholder or text == "":
+            on_search("")
+        else:
+            on_search(text)
 
     def get(self) -> str:
         return self._var.get()
